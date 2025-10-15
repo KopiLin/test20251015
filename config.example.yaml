@@ -1,0 +1,25 @@
+paths:
+  wait_dir: ./wait
+  run_dir: ./run
+  buggy_dir: ./buggy
+  sqlite_path: ./mail_status.db
+
+weaviate:
+  host: http://localhost:8080
+  api_key: null
+  collection_name: MailDoc
+  embedding:
+    provider: openai    # openai | ollama
+    model: text-embedding-3-small
+    vector_dimensions: 1536
+
+queue:
+  maxsize: 100
+
+worker:
+  threads: 4
+  poll_interval: 2.0   # seconds
+
+logging:
+  level: INFO
+
