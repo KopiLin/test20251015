@@ -1,50 +1,70 @@
 from __future__ import annotations
 
+"""讀取與解析應用程式設定的輔助模組。
+
+此模組以資料類別封裝設定檔結構，並提供 `load_config` 方便載入
+YAML 檔案。所有註解皆採繁體中文說明，協助團隊快速理解各欄位用途。
+"""
+
 from dataclasses import dataclass
 from typing import Optional
 
 
 @dataclass
 class EmbeddingConfig:
-    provider: str  # "openai" | "ollama"
-    model: str
-    vector_dimensions: int
+    """向量嵌入相關設定。"""
+
+    provider: str  # 嵌入服務提供者，例如 "openai" 或 "ollama"
+    model: str  # 服務端應使用的模型名稱
+    vector_dimensions: int  # 預期的向量維度，供 Weaviate 驗證
 
 
 @dataclass
 class WeaviateConfig:
-    host: str
-    api_key: Optional[str]
-    collection_name: str
-    embedding: EmbeddingConfig
+    """Weaviate 連線與集合相關設定。"""
+
+    host: str  # Weaviate 伺服器位址 (含通訊協定)
+    api_key: Optional[str]  # 若伺服器啟用驗證則填入 API Key
+    collection_name: str  # 儲存郵件的集合名稱
+    embedding: EmbeddingConfig  # 內嵌的向量設定
 
 
 @dataclass
 class PathsConfig:
-    wait_dir: str
-    run_dir: str
-    buggy_dir: str
-    sqlite_path: str
+    """檔案與資料庫路徑設定。"""
+
+    wait_dir: str  # 等待匯入的郵件資料夾
+    run_dir: str  # 目前執行中批次的暫存資料夾
+    buggy_dir: str  # 匯入失敗或解析失敗的檔案放置位置
+    sqlite_path: str  # SQLite 狀態資料庫檔案路徑
 
 
 @dataclass
 class QueueConfig:
-    maxsize: int
+    """排程佇列的容量設定。"""
+
+    maxsize: int  # 工作佇列一次可容納的最大批次數量
 
 
 @dataclass
 class WorkerConfig:
-    threads: int
-    poll_interval: float
+    """背景工作執行緒相關設定。"""
+
+    threads: int  # 要啟動的工作執行緒數量
+    poll_interval: float  # 主迴圈掃描等待資料夾的時間間隔（秒）
 
 
 @dataclass
 class LoggingConfig:
-    level: str = "INFO"
+    """紀錄器設定。"""
+
+    level: str = "INFO"  # 文字形式的 logging level，例如 INFO、DEBUG
 
 
 @dataclass
 class AppConfig:
+    """彙整所有子設定的總體設定資料結構。"""
+
     paths: PathsConfig
     weaviate: WeaviateConfig
     queue: QueueConfig
@@ -53,15 +73,29 @@ class AppConfig:
 
 
 def load_config(path: str) -> AppConfig:
+    """從指定路徑載入 YAML 設定檔並轉換成 `AppConfig`。
+
+    Args:
+        path: 設定檔的絕對路徑或相對路徑。
+
+    Raises:
+        FileNotFoundError: 找不到指定的設定檔。
+
+    Returns:
+        解析後的 `AppConfig` 物件。
+    """
+
     import os
     import yaml
 
     if not os.path.exists(path):
         raise FileNotFoundError(f"Config file not found: {path}")
 
+    # 讀取 YAML 內容並轉為 Python 字典
     with open(path, "r", encoding="utf-8") as f:
         data = yaml.safe_load(f)
 
+    # 建立各子設定資料類別，確保欄位型別一致
     embedding = EmbeddingConfig(
         provider=data["weaviate"]["embedding"]["provider"],
         model=data["weaviate"]["embedding"]["model"],
