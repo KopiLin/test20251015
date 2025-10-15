@@ -1,14 +1,17 @@
+"""提供查詢郵件匯入狀態的簡易 CLI 工具。"""
+
 from __future__ import annotations
 
 import argparse
 import json
-from typing import Any
 
 from .config import load_config
 from .database import MailStatusDB
 
 
 def parse_args() -> argparse.Namespace:
+    """解析查詢指令列參數。"""
+
     p = argparse.ArgumentParser(description="Mail Worker – Query CLI")
     p.add_argument("--config", required=True, help="Path to YAML config file")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -25,6 +28,8 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+    """依據指令列參數輸出對應的統計結果。"""
+
     args = parse_args()
     cfg = load_config(args.config)
     db = MailStatusDB(cfg.paths.sqlite_path)
