@@ -7,17 +7,23 @@
     <link rel="stylesheet" href="style.css" />
     <script src="rain.js" defer></script>
   </head>
-  <body>
-    <canvas id="rain-canvas" aria-label="Rain animation"></canvas>
+  <body class="theme-sun">
+    <canvas id="rain-canvas" aria-label="Sunny animation"></canvas>
 
     <button id="music-toggle" class="music-toggle" type="button"
             aria-pressed="false" aria-label="背景音樂" title="背景音樂">
       ♪
     </button>
 
+    <button id="weather-toggle" class="weather-toggle" type="button"
+            aria-pressed="false" aria-label="目前多雲晴天，按下切換為下雨天"
+            title="切換為下雨天">
+      ⛅
+    </button>
+
     <div class="clock" id="clock" aria-live="polite" aria-atomic="true">--:--</div>
     <div class="overlay">
-      <div class="label">Rainy Day</div>
+      <div class="label" id="weather-label">Sunny Skies</div>
     </div>
   </body>
 </html>
