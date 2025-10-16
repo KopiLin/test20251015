@@ -74,6 +74,45 @@ body.theme-storm {
   color: #dbe3ff;
 }
 
+body.theme-mist {
+  --accent-color: #b6d4ff;
+  --glow-color: rgba(182, 212, 255, 0.45);
+  --hud-surface: rgba(32, 46, 72, 0.55);
+  --hud-border: rgba(168, 198, 255, 0.35);
+  --hud-text: #e3edff;
+  --hud-text-rgb: 227, 237, 255;
+  background: radial-gradient(circle at 15% 10%, rgba(104, 138, 210, 0.45), transparent 50%),
+    radial-gradient(circle at 70% 15%, rgba(152, 188, 255, 0.32), transparent 55%),
+    linear-gradient(180deg, #0c1424 0%, #1d2c45 45%, #2a3f5c 100%);
+  color: #dfe9ff;
+}
+
+body.theme-snow {
+  --accent-color: #d4f2ff;
+  --glow-color: rgba(212, 242, 255, 0.55);
+  --hud-surface: rgba(255, 255, 255, 0.28);
+  --hud-border: rgba(184, 214, 255, 0.4);
+  --hud-text: #2c3f66;
+  --hud-text-rgb: 44, 63, 102;
+  background: radial-gradient(circle at 10% 5%, rgba(224, 246, 255, 0.55), transparent 55%),
+    radial-gradient(circle at 75% 20%, rgba(160, 200, 255, 0.35), transparent 60%),
+    linear-gradient(185deg, #14203a 0%, #1b3154 45%, #3f5d80 100%);
+  color: #2c3f66;
+}
+
+body.theme-aurora {
+  --accent-color: #7cf4d8;
+  --glow-color: rgba(124, 244, 216, 0.55);
+  --hud-surface: rgba(10, 20, 36, 0.65);
+  --hud-border: rgba(120, 230, 210, 0.35);
+  --hud-text: #d6fffb;
+  --hud-text-rgb: 214, 255, 251;
+  background: radial-gradient(circle at 25% 15%, rgba(120, 255, 232, 0.4), transparent 55%),
+    radial-gradient(circle at 70% 5%, rgba(184, 140, 255, 0.35), transparent 60%),
+    linear-gradient(200deg, #050a14 0%, #071730 45%, #0e203a 100%);
+  color: #d6fffb;
+}
+
 #rain-canvas {
   position: fixed;
   inset: 0;
@@ -249,56 +288,195 @@ body.theme-storm .music-toggle {
   opacity: 0.65;
 }
 
-.weather-toggle {
+.control-dock {
   position: fixed;
-  right: 18px;
   top: 18px;
-  z-index: 6;
-  padding: 10px 14px;
-  border-radius: 12px;
-  border: 1px solid rgba(48, 68, 105, 0.35);
-  background: rgba(240, 248, 255, 0.7);
-  color: #36506e;
-  font-size: 18px;
-  line-height: 1;
+  right: 18px;
+  z-index: 7;
+  display: grid;
+  gap: 10px;
+  align-items: start;
+  justify-items: end;
+}
+
+.dock-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(72, 104, 150, 0.35);
+  background: rgba(240, 248, 255, 0.78);
+  color: #2f3a4d;
+  font-size: 15px;
+  letter-spacing: 1.4px;
   cursor: pointer;
-  backdrop-filter: blur(4px);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
-  transition: background 0.3s ease, color 0.3s ease, border 0.3s ease, box-shadow 0.4s ease;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 6px 26px rgba(0, 0, 0, 0.18);
   text-transform: uppercase;
-  letter-spacing: 1.6px;
+  transition: background 0.3s ease, color 0.3s ease, border 0.3s ease, box-shadow 0.4s ease;
 }
 
-.weather-toggle:hover {
-  background: rgba(255, 255, 255, 0.85);
+.dock-toggle:hover,
+.control-dock.open .dock-toggle {
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.22), 0 0 22px var(--glow-color);
 }
 
-.weather-toggle:focus-visible {
+.dock-toggle:focus-visible {
   outline: 2px solid rgba(88, 140, 220, 0.9);
+  outline-offset: 3px;
+}
+
+.dock-icon {
+  font-size: 22px;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.45));
+}
+
+.dock-label {
+  display: grid;
+  gap: 2px;
+  text-align: right;
+}
+
+.dock-label-title {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.dock-label-sub {
+  font-size: 10px;
+  letter-spacing: 1.6px;
+  opacity: 0.7;
+}
+
+.dock-caret {
+  font-size: 12px;
+  opacity: 0.6;
+  transition: transform 0.3s ease;
+}
+
+.control-dock.open .dock-caret {
+  transform: rotate(180deg);
+}
+
+.dock-panel {
+  position: relative;
+  min-width: clamp(240px, 32vw, 320px);
+  padding: 18px 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(120, 160, 220, 0.28);
+  background: rgba(16, 24, 40, 0.8);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.38), 0 0 32px var(--glow-color);
+  backdrop-filter: blur(12px);
+  color: #e0e9ff;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-8px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.control-dock:hover .dock-panel,
+.control-dock:focus-within .dock-panel,
+.control-dock.open .dock-panel {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.dock-section + .dock-section {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dock-heading {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 2px;
+  opacity: 0.75;
+  margin-bottom: 12px;
+}
+
+.dock-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+}
+
+.dock-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(170, 190, 255, 0.22);
+  background: rgba(20, 30, 48, 0.55);
+  color: inherit;
+  font-size: 12px;
+  letter-spacing: 1.2px;
+  cursor: pointer;
+  transition: border 0.25s ease, background 0.25s ease, box-shadow 0.35s ease;
+}
+
+.dock-option .option-icon {
+  font-size: 18px;
+}
+
+.dock-option:hover,
+.dock-option:focus-visible {
+  border-color: rgba(200, 220, 255, 0.45);
+  background: rgba(36, 50, 76, 0.75);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 18px rgba(120, 200, 255, 0.35);
+}
+
+.dock-option.is-active {
+  border-color: var(--accent-color);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35), 0 0 22px var(--glow-color);
+}
+
+.dock-option:focus-visible {
+  outline: 2px solid var(--accent-color);
   outline-offset: 2px;
 }
 
-body.theme-rain .weather-toggle {
-  background: rgba(20, 28, 46, 0.55);
-  border-color: rgba(170, 190, 255, 0.35);
-  color: #cfd8ff;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+.dock-music {
+  display: grid;
+  gap: 10px;
 }
 
-body.theme-rain .weather-toggle:hover {
-  background: rgba(20, 28, 46, 0.65);
+.dock-credit {
+  margin: 10px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(224, 233, 255, 0.7);
 }
 
-body.theme-storm .weather-toggle {
-  background: rgba(24, 18, 52, 0.72);
-  border-color: rgba(170, 150, 255, 0.42);
-  color: #d4ddff;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45), 0 0 22px rgba(144, 125, 255, 0.45);
+body.theme-sun .dock-panel {
+  background: rgba(255, 255, 255, 0.85);
+  color: #2f3a4d;
+  border-color: rgba(64, 94, 140, 0.28);
 }
 
-.weather-toggle[data-current="storm"] {
-  border-color: rgba(162, 146, 255, 0.65);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.45), 0 0 28px rgba(162, 146, 255, 0.55);
+body.theme-sun .dock-option {
+  background: rgba(255, 255, 255, 0.55);
+  border-color: rgba(72, 104, 150, 0.2);
+}
+
+body.theme-sun .dock-option:hover,
+body.theme-sun .dock-option:focus-visible {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(72, 104, 150, 0.45);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), 0 0 18px rgba(255, 218, 120, 0.35);
+}
+
+body.theme-snow .dock-panel {
+  background: rgba(255, 255, 255, 0.82);
+  color: #2c3f66;
+}
+
+body.theme-aurora .dock-panel {
+  background: rgba(10, 24, 32, 0.78);
 }
 
 .hud {
@@ -419,6 +597,21 @@ body.music-active .equalizer .bar {
 #equalizer[data-tone="storm"] .bar {
   animation-duration: 1.2s;
   background: linear-gradient(180deg, rgba(159, 139, 255, 0.95), rgba(53, 192, 255, 0.55));
+}
+
+#equalizer[data-tone="mist"] .bar {
+  animation-duration: 2s;
+  background: linear-gradient(180deg, rgba(182, 212, 255, 0.85), rgba(88, 140, 220, 0.35));
+}
+
+#equalizer[data-tone="snow"] .bar {
+  animation-duration: 1.8s;
+  background: linear-gradient(180deg, rgba(212, 242, 255, 0.92), rgba(120, 160, 220, 0.35));
+}
+
+#equalizer[data-tone="aurora"] .bar {
+  animation-duration: 1.4s;
+  background: linear-gradient(180deg, rgba(124, 244, 216, 0.95), rgba(120, 160, 255, 0.35));
 }
 
 @keyframes eqIdle {
