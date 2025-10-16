@@ -7,8 +7,35 @@
     <link rel="stylesheet" href="style.css" />
     <script src="rain.js" defer></script>
   </head>
-  <body class="theme-sun">
+  <body class="theme-sun" data-weather="sun">
+    <div class="scanlines" aria-hidden="true"></div>
+    <div class="hud-grid" aria-hidden="true"></div>
+
     <canvas id="rain-canvas" aria-label="Sunny animation"></canvas>
+
+    <section class="hud" role="region" aria-label="未來氣象面板">
+      <header class="hud-header">
+        <span class="hud-title">CYBER WEATHER NODE</span>
+        <span class="hud-chip" id="weather-chip">SOL-84</span>
+      </header>
+      <div class="hud-status">
+        <span class="hud-icon" id="hud-icon" aria-hidden="true">☀️</span>
+        <div class="hud-text">
+          <p class="hud-mode" id="hud-mode">Neon Sun</p>
+          <p class="hud-description" id="weather-description">
+            Neon sunbeams warm the district.
+          </p>
+        </div>
+      </div>
+      <div class="equalizer" id="equalizer" aria-hidden="true">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+      </div>
+    </section>
 
     <button id="music-toggle" class="music-toggle" type="button"
             aria-pressed="false" aria-label="背景音樂" title="背景音樂">
