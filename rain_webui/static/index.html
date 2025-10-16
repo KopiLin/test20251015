@@ -42,15 +42,33 @@
       ♪
     </button>
 
-    <button id="weather-toggle" class="weather-toggle" type="button"
-            aria-pressed="false" aria-label="目前多雲晴天，按下切換為下雨天"
-            title="切換為下雨天">
-      ⛅
-    </button>
+    <div class="control-dock" id="control-dock">
+      <button id="dock-toggle" class="dock-toggle" type="button" aria-haspopup="true" aria-expanded="false">
+        <span class="dock-icon" id="dock-weather-icon">☀️</span>
+        <span class="dock-label">
+          <span class="dock-label-title" id="dock-weather-label">Neon Sun</span>
+          <span class="dock-label-sub" id="dock-track-label">Synth Lab</span>
+        </span>
+        <span class="dock-caret" aria-hidden="true">▾</span>
+      </button>
+      <div class="dock-panel" id="dock-panel" role="group" aria-label="互動控制面板">
+        <div class="dock-section" aria-label="天氣模式">
+          <span class="dock-heading">WEATHER</span>
+          <div class="dock-grid" id="weather-options"></div>
+        </div>
+        <div class="dock-section" aria-label="背景音樂">
+          <span class="dock-heading">MUSIC</span>
+          <div class="dock-music" id="music-options"></div>
+          <p class="dock-credit" id="music-credit" aria-live="polite"></p>
+        </div>
+      </div>
+    </div>
 
     <div class="clock" id="clock" aria-live="polite" aria-atomic="true">--:--</div>
     <div class="overlay">
       <div class="label" id="weather-label">Sunny Skies</div>
     </div>
+
+    <audio id="bg-audio" preload="none" loop></audio>
   </body>
 </html>

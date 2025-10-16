@@ -5,7 +5,6 @@
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
-  const weatherBtn = document.getElementById('weather-toggle');
   const musicBtn = document.getElementById('music-toggle');
   const labelEl = document.getElementById('weather-label');
   const hudChip = document.getElementById('weather-chip');
@@ -14,6 +13,26 @@
   const hudIconEl = document.getElementById('hud-icon');
   const equalizerEl = document.getElementById('equalizer');
   const body = document.body;
+  const dock = document.getElementById('control-dock');
+  const dockToggle = document.getElementById('dock-toggle');
+  const dockPanel = document.getElementById('dock-panel');
+  const dockWeatherIcon = document.getElementById('dock-weather-icon');
+  const dockWeatherLabel = document.getElementById('dock-weather-label');
+  const dockTrackLabel = document.getElementById('dock-track-label');
+  const weatherOptionsEl = document.getElementById('weather-options');
+  const musicOptionsEl = document.getElementById('music-options');
+  const musicCreditEl = document.getElementById('music-credit');
+  const audioEl = document.getElementById('bg-audio');
+
+  const weatherButtons = new Map();
+  const musicButtons = new Map();
+
+  if (audioEl) {
+    audioEl.crossOrigin = 'anonymous';
+    audioEl.loop = true;
+    audioEl.preload = 'auto';
+    audioEl.volume = 0.6;
+  }
 
   function rand(min, max) { return Math.random() * (max - min) + min; }
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
@@ -149,6 +168,250 @@
         this.flashTimer = this.flashDuration;
         this.flashStrength = rand(0.3, 0.5);
       }
+    }
+  }
+
+  class MistScene extends RainScene {
+    constructor() {
+      super();
+      this.backgroundFill = 'rgba(8, 12, 22, 1)';
+      this.trailFill = 'rgba(12, 20, 34, 0.55)';
+      this.strokeStyle = 'rgba(168, 198, 255, 0.4)';
+    }
+
+    targetCount() {
+      return clamp(Math.floor((this.width * this.height) / 5200), 200, 900);
+    }
+
+    makeDrop(randomStart = false) {
+      const drop = super.makeDrop(randomStart);
+      drop.speed *= 0.38;
+      drop.len = rand(4, 12) * this.dpr;
+      drop.thickness = rand(1.2, 2.6) * this.dpr;
+      drop.drift = rand(-0.4, 0.5) * this.dpr;
+      drop.alpha = rand(0.12, 0.3);
+      return drop;
+    }
+
+    render(ctx, dt = 0.016) {
+      super.render(ctx, dt);
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const gradient = ctx.createLinearGradient(0, 0, 0, this.height);
+      gradient.addColorStop(0, 'rgba(120, 170, 255, 0.08)');
+      gradient.addColorStop(0.45, 'rgba(162, 198, 255, 0.12)');
+      gradient.addColorStop(1, 'rgba(40, 66, 110, 0.25)');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, this.width, this.height);
+      ctx.restore();
+    }
+  }
+
+  class SnowScene {
+    constructor() {
+      this.flakes = [];
+      this.width = 0;
+      this.height = 0;
+      this.dpr = 1;
+      this.time = 0;
+    }
+
+    targetCount() {
+      return clamp(Math.floor((this.width * this.height) / 5200), 220, 880);
+    }
+
+    makeFlake(randomStart = false) {
+      return {
+        x: rand(-20, this.width + 20),
+        y: randomStart ? rand(-this.height, this.height) : rand(-this.height, -10),
+        size: rand(1.2, 3.6) * this.dpr,
+        speed: rand(16, 32),
+        drift: rand(12, 26),
+        sway: rand(0.5, 1.3),
+        twinkle: rand(0, Math.PI * 2),
+        sparkle: rand(0.4, 1)
+      };
+    }
+
+    reset(width, height, dpr) {
+      this.width = width;
+      this.height = height;
+      this.dpr = dpr;
+      this.time = 0;
+      const target = this.targetCount();
+      this.flakes = [];
+      for (let i = 0; i < target; i++) {
+        this.flakes.push(this.makeFlake(true));
+      }
+    }
+
+    resize(width, height, dpr) {
+      this.width = width;
+      this.height = height;
+      this.dpr = dpr;
+      const target = this.targetCount();
+      if (this.flakes.length < target) {
+        while (this.flakes.length < target) this.flakes.push(this.makeFlake(true));
+      } else if (this.flakes.length > target) {
+        this.flakes.length = target;
+      }
+    }
+
+    recycleFlake(flake) {
+      Object.assign(flake, this.makeFlake(false));
+    }
+
+    render(ctx, dt = 0.016) {
+      this.time += dt;
+
+      const background = ctx.createLinearGradient(0, 0, 0, this.height);
+      background.addColorStop(0, '#112034');
+      background.addColorStop(1, '#3c5878');
+      ctx.fillStyle = background;
+      ctx.fillRect(0, 0, this.width, this.height);
+
+      ctx.save();
+      ctx.fillStyle = 'rgba(240, 248, 255, 0.9)';
+      for (const flake of this.flakes) {
+        flake.y += flake.speed * dt;
+        flake.x += Math.sin(this.time * flake.sway + flake.twinkle) * flake.drift * dt * 0.4;
+        flake.twinkle += dt * flake.sway;
+
+        if (flake.y - flake.size > this.height) {
+          this.recycleFlake(flake);
+          continue;
+        }
+        if (flake.x < -40) flake.x = this.width + 20;
+        if (flake.x > this.width + 40) flake.x = -20;
+
+        const twinkle = 0.65 + Math.sin(this.time * 3 + flake.twinkle) * 0.35;
+        ctx.globalAlpha = clamp(flake.sparkle * twinkle, 0.3, 1);
+        ctx.beginPath();
+        ctx.arc(flake.x, flake.y, flake.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+
+      ctx.save();
+      ctx.globalAlpha = 0.35;
+      const haze = ctx.createLinearGradient(0, this.height * 0.45, 0, this.height);
+      haze.addColorStop(0, 'rgba(255, 255, 255, 0)');
+      haze.addColorStop(1, 'rgba(255, 255, 255, 0.4)');
+      ctx.fillStyle = haze;
+      ctx.fillRect(0, 0, this.width, this.height);
+      ctx.restore();
+    }
+  }
+
+  class AuroraScene {
+    constructor() {
+      this.width = 0;
+      this.height = 0;
+      this.dpr = 1;
+      this.time = 0;
+      this.stars = [];
+      this.ribbons = [];
+    }
+
+    makeStar(initial = false) {
+      return {
+        x: rand(-40, this.width + 40),
+        y: rand(0, this.height * 0.7),
+        radius: rand(0.6, 1.8) * this.dpr,
+        twinkle: rand(0, Math.PI * 2),
+        speed: rand(1.5, 3.2)
+      };
+    }
+
+    makeRibbon() {
+      return {
+        baseY: rand(0.25, 0.62),
+        amplitude: rand(28, 72),
+        thickness: rand(60, 140),
+        speed: rand(0.08, 0.18),
+        hue: rand(140, 190),
+        wave: rand(0.003, 0.0055)
+      };
+    }
+
+    reset(width, height, dpr) {
+      this.width = width;
+      this.height = height;
+      this.dpr = dpr;
+      this.time = 0;
+
+      const starCount = clamp(Math.floor((width * height) / 2800), 120, 320);
+      this.stars = [];
+      for (let i = 0; i < starCount; i++) this.stars.push(this.makeStar(true));
+
+      const ribbonCount = 3;
+      this.ribbons = [];
+      for (let i = 0; i < ribbonCount; i++) this.ribbons.push(this.makeRibbon());
+    }
+
+    resize(width, height, dpr) {
+      this.reset(width, height, dpr);
+    }
+
+    render(ctx, dt = 0.016) {
+      this.time += dt;
+
+      const sky = ctx.createLinearGradient(0, 0, 0, this.height);
+      sky.addColorStop(0, '#050c16');
+      sky.addColorStop(0.5, '#061a32');
+      sky.addColorStop(1, '#0a213a');
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, this.width, this.height);
+
+      ctx.save();
+      for (const star of this.stars) {
+        star.twinkle += dt * star.speed;
+        const sparkle = 0.45 + Math.sin(star.twinkle) * 0.55;
+        ctx.globalAlpha = clamp(sparkle, 0.2, 1);
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.radius * (0.8 + sparkle * 0.6), 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(214, 255, 251, 0.85)';
+        ctx.fill();
+      }
+      ctx.restore();
+
+      for (let i = 0; i < this.ribbons.length; i++) {
+        const ribbon = this.ribbons[i];
+        const baseY = this.height * ribbon.baseY;
+        const grad = ctx.createLinearGradient(0, baseY - ribbon.thickness, 0, baseY + ribbon.thickness);
+        grad.addColorStop(0, `hsla(${ribbon.hue}, 90%, 70%, 0)`);
+        grad.addColorStop(0.5, `hsla(${ribbon.hue}, 95%, 75%, 0.55)`);
+        grad.addColorStop(1, `hsla(${ribbon.hue + 40}, 85%, 65%, 0)`);
+
+        ctx.save();
+        ctx.fillStyle = grad;
+        ctx.globalAlpha = 0.75;
+        ctx.beginPath();
+        ctx.moveTo(0, baseY + ribbon.thickness);
+        const segments = 64;
+        for (let s = 0; s <= segments; s++) {
+          const t = s / segments;
+          const x = t * this.width;
+          const wave = Math.sin(this.time * ribbon.speed + x * ribbon.wave + i);
+          const y = baseY + wave * ribbon.amplitude;
+          ctx.lineTo(x, y);
+        }
+        ctx.lineTo(this.width, baseY + ribbon.thickness);
+        ctx.lineTo(this.width, baseY - ribbon.thickness);
+        ctx.lineTo(0, baseY - ribbon.thickness);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+
+      ctx.save();
+      ctx.globalAlpha = 0.25;
+      const mist = ctx.createLinearGradient(0, this.height * 0.6, 0, this.height);
+      mist.addColorStop(0, 'rgba(120, 244, 216, 0.0)');
+      mist.addColorStop(1, 'rgba(120, 244, 216, 0.35)');
+      ctx.fillStyle = mist;
+      ctx.fillRect(0, 0, this.width, this.height);
+      ctx.restore();
     }
   }
 
@@ -338,6 +601,37 @@
         ramp: 1.4
       }
     },
+    mist: {
+      label: 'Holographic Mist',
+      icon: '🌫️',
+      hudCode: 'NBL-22',
+      description: 'Pearlescent fog drifts between neon towers.',
+      voiceLabel: '霧光流轉',
+      canvasLabel: 'Holographic mist animation',
+      themeClass: 'theme-mist',
+      accent: '#b6d4ff',
+      glow: 'rgba(182, 212, 255, 0.45)',
+      hudSurface: 'rgba(32, 46, 72, 0.55)',
+      hudBorder: 'rgba(168, 198, 255, 0.35)',
+      hudText: '#e3edff',
+      hudTextRgb: '227, 237, 255',
+      audio: {
+        noiseLevel: 0.12,
+        noiseCutoff: 5200,
+        noiseFloor: 1400,
+        osc1Freq: 184,
+        osc1Type: 'sine',
+        osc2Freq: 233.08,
+        osc2Type: 'triangle',
+        bassFreq: 48,
+        bassType: 'sine',
+        padGain: 0.05,
+        bassGain: 0.018,
+        lfoRate: 0.09,
+        lfoDepth: 8,
+        ramp: 1.5
+      }
+    },
     rain: {
       label: 'Holographic Rain',
       icon: '🌧️',
@@ -399,22 +693,113 @@
         lfoDepth: 14,
         ramp: 1.2
       }
+    },
+    snow: {
+      label: 'Crystal Snowfall',
+      icon: '❄️',
+      hudCode: 'CRY-73',
+      description: 'Iridescent snowflakes spiral through the plaza.',
+      voiceLabel: '晶華飄雪',
+      canvasLabel: 'Crystal snowfall animation',
+      themeClass: 'theme-snow',
+      accent: '#d4f2ff',
+      glow: 'rgba(212, 242, 255, 0.55)',
+      hudSurface: 'rgba(255, 255, 255, 0.28)',
+      hudBorder: 'rgba(184, 214, 255, 0.4)',
+      hudText: '#2c3f66',
+      hudTextRgb: '44, 63, 102',
+      audio: {
+        noiseLevel: 0.09,
+        noiseCutoff: 6400,
+        noiseFloor: 2200,
+        osc1Freq: 246.94,
+        osc1Type: 'triangle',
+        osc2Freq: 329.63,
+        osc2Type: 'sine',
+        bassFreq: 65.41,
+        bassType: 'triangle',
+        padGain: 0.06,
+        bassGain: 0.02,
+        lfoRate: 0.07,
+        lfoDepth: 5,
+        ramp: 1.8
+      }
+    },
+    aurora: {
+      label: 'Aurora Pulse',
+      icon: '🌌',
+      hudCode: 'AUR-19',
+      description: 'Charged aurora waves ripple across the skyline.',
+      voiceLabel: '極光脈衝',
+      canvasLabel: 'Aurora pulse animation',
+      themeClass: 'theme-aurora',
+      accent: '#7cf4d8',
+      glow: 'rgba(124, 244, 216, 0.55)',
+      hudSurface: 'rgba(10, 20, 36, 0.65)',
+      hudBorder: 'rgba(120, 230, 210, 0.35)',
+      hudText: '#d6fffb',
+      hudTextRgb: '214, 255, 251',
+      audio: {
+        noiseLevel: 0.18,
+        noiseCutoff: 5600,
+        noiseFloor: 1000,
+        osc1Freq: 174.61,
+        osc1Type: 'sine',
+        osc2Freq: 261.63,
+        osc2Type: 'sawtooth',
+        bassFreq: 55,
+        bassType: 'square',
+        padGain: 0.065,
+        bassGain: 0.05,
+        lfoRate: 0.14,
+        lfoDepth: 11,
+        ramp: 1.5
+      }
     }
   };
 
-  const weatherOrder = ['sun', 'rain', 'storm'];
+  const weatherOrder = ['sun', 'mist', 'rain', 'storm', 'snow', 'aurora'];
   const themeClasses = Array.from(new Set(Object.values(weatherModes).map(meta => meta.themeClass)));
 
   const scenes = {
     sun: new SunnyScene(),
+    mist: new MistScene(),
     rain: new RainScene(),
-    storm: new StormScene()
+    storm: new StormScene(),
+    snow: new SnowScene(),
+    aurora: new AuroraScene()
   };
 
   let width = 0;
   let height = 0;
   let dpr = 1;
   let current = 'sun';
+
+  const musicTracks = [
+    {
+      id: 'synth-lab',
+      name: 'Synth Lab',
+      description: 'Procedural neon soundscape',
+      type: 'synth',
+      credit: '原創聲景 · 程式即時合成，適合依天氣漸變。'
+    },
+    {
+      id: 'calm-soundscape',
+      name: 'Calm Soundscape',
+      description: 'ZakharValaha · Ambient',
+      type: 'file',
+      src: 'https://cdn.pixabay.com/download/audio/2022/03/01/audio_c956099f16.mp3?filename=calm-soundscape-ambient-11013.mp3',
+      credit: 'Calm Soundscape - ZakharValaha (Pixabay License · 無版權音樂)'
+    },
+    {
+      id: 'digital-dream',
+      name: 'Digital Dream',
+      description: 'Mixaund · Chillwave',
+      type: 'file',
+      src: 'https://cdn.pixabay.com/download/audio/2021/08/09/audio_dae0d37340.mp3?filename=digital-dream-11259.mp3',
+      credit: 'Digital Dream - Mixaund (Pixabay License · 無版權音樂)'
+    }
+  ];
 
   let audioCtx = null;
   let masterGain = null;
@@ -431,6 +816,8 @@
   let lfoGain = null;
   let musicOn = false;
   let pendingProfile = weatherModes.sun.audio;
+  let currentTrackId = musicTracks[0]?.id ?? 'synth-lab';
+  let dockOpen = false;
 
   function resizeCanvas() {
     dpr = Math.max(1, window.devicePixelRatio || 1);
@@ -447,25 +834,139 @@
     Object.values(scenes).forEach(scene => scene.resize(width, height, dpr));
   }
 
-  function getNextWeather(mode) {
-    const idx = weatherOrder.indexOf(mode);
-    const nextIdx = (idx + 1) % weatherOrder.length;
-    return weatherOrder[nextIdx];
+  function setDockOpen(open) {
+    dockOpen = open;
+    if (!dock || !dockToggle) return;
+    dock.classList.toggle('open', open);
+    dockToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
   }
 
-  function updateWeatherButton(mode) {
-    if (!weatherBtn) return;
-    const meta = weatherModes[mode];
-    if (!meta) return;
-    const next = getNextWeather(mode);
-    const nextMeta = weatherModes[next];
-    weatherBtn.dataset.current = mode;
-    weatherBtn.textContent = nextMeta?.icon ?? '☀️';
-    weatherBtn.setAttribute('aria-pressed', mode === 'sun' ? 'false' : 'true');
-    if (nextMeta) {
-      weatherBtn.setAttribute('aria-label', `目前${meta.voiceLabel}，按下切換為${nextMeta.voiceLabel}`);
-      weatherBtn.setAttribute('title', `切換為${nextMeta.voiceLabel}`);
+  function toggleDock(force) {
+    const next = typeof force === 'boolean' ? force : !dockOpen;
+    setDockOpen(next);
+  }
+
+  function getCurrentTrack() {
+    return musicTracks.find(track => track.id === currentTrackId) ?? musicTracks[0];
+  }
+
+  function updateDockTrackDisplay() {
+    const track = getCurrentTrack();
+    if (dockTrackLabel) dockTrackLabel.textContent = track ? track.name : '';
+    if (musicCreditEl) musicCreditEl.textContent = track?.credit ?? '';
+  }
+
+  function highlightWeather(mode) {
+    weatherButtons.forEach((btn, key) => {
+      if (!btn) return;
+      btn.classList.toggle('is-active', key === mode);
+    });
+  }
+
+  function highlightTrack(id) {
+    musicButtons.forEach((btn, key) => {
+      if (!btn) return;
+      btn.classList.toggle('is-active', key === id);
+    });
+    updateDockTrackDisplay();
+  }
+
+  function buildWeatherOptions() {
+    if (!weatherOptionsEl) return;
+    weatherOptionsEl.innerHTML = '';
+    weatherButtons.clear();
+    for (const key of weatherOrder) {
+      const meta = weatherModes[key];
+      if (!meta) continue;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'dock-option';
+      btn.dataset.weather = key;
+      btn.innerHTML = `<span class="option-icon">${meta.icon}</span><span>${meta.label}</span>`;
+      btn.addEventListener('click', () => {
+        setWeather(key);
+        highlightWeather(key);
+        toggleDock(false);
+      });
+      weatherButtons.set(key, btn);
+      weatherOptionsEl.appendChild(btn);
     }
+  }
+
+  function buildMusicOptions() {
+    if (!musicOptionsEl) return;
+    musicOptionsEl.innerHTML = '';
+    musicButtons.clear();
+    for (const track of musicTracks) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'dock-option';
+      btn.dataset.track = track.id;
+      btn.innerHTML = `<span class="option-icon">${track.type === 'synth' ? '🪐' : '🎵'}</span><span>${track.name}</span>`;
+      btn.title = track.description ?? track.name;
+      btn.addEventListener('click', () => {
+        selectTrack(track.id);
+      });
+      musicButtons.set(track.id, btn);
+      musicOptionsEl.appendChild(btn);
+    }
+  }
+
+  if (dock) {
+    dock.addEventListener('mouseenter', () => setDockOpen(true));
+    dock.addEventListener('mouseleave', () => setDockOpen(false));
+    dock.addEventListener('focusin', () => setDockOpen(true));
+    dock.addEventListener('focusout', event => {
+      if (!dock.contains(event.relatedTarget)) {
+        setDockOpen(false);
+      }
+    });
+  }
+  if (dockToggle) {
+    dockToggle.addEventListener('click', () => toggleDock());
+    dockToggle.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setDockOpen(false);
+      }
+    });
+  }
+  if (dockPanel) {
+    dockPanel.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setDockOpen(false);
+        dockToggle?.focus();
+      }
+    });
+  }
+
+  async function selectTrack(id) {
+    if (!id || id === currentTrackId) {
+      highlightTrack(currentTrackId);
+      toggleDock(false);
+      return;
+    }
+    const track = musicTracks.find(item => item.id === id);
+    if (!track) return;
+    const wasPlaying = musicOn;
+    if (wasPlaying) {
+      stopMusic();
+    }
+    currentTrackId = id;
+    highlightTrack(id);
+    if (track.type === 'file' && audioEl) {
+      audioEl.src = track.src ?? '';
+      if (typeof audioEl.load === 'function') audioEl.load();
+    }
+    if (track.type === 'synth') {
+      pendingProfile = weatherModes[current].audio;
+    }
+    updateMusicButton();
+    if (wasPlaying) {
+      await startMusic({ immediate: true });
+    }
+    toggleDock(false);
   }
 
   function applyWeatherClasses(mode) {
@@ -489,15 +990,17 @@
     if (hudDescriptionEl) hudDescriptionEl.textContent = meta.description;
     if (hudIconEl) hudIconEl.textContent = meta.icon;
     if (equalizerEl) equalizerEl.setAttribute('data-tone', mode);
+    if (dockWeatherIcon) dockWeatherIcon.textContent = meta.icon;
+    if (dockWeatherLabel) dockWeatherLabel.textContent = meta.label;
 
     canvas.setAttribute('aria-label', meta.canvasLabel);
-    updateWeatherButton(mode);
 
     return meta;
   }
 
   function scheduleAudioProfile(profile, immediate = false) {
     pendingProfile = profile;
+    if (getCurrentTrack()?.type !== 'synth') return;
     if (musicOn && audioCtx && profile) {
       morphAudio(profile, immediate);
     }
@@ -509,7 +1012,8 @@
     current = mode;
     scene.reset(width, height, dpr);
     const meta = applyWeatherClasses(mode);
-    if (meta) {
+    highlightWeather(mode);
+    if (meta && getCurrentTrack()?.type === 'synth') {
       scheduleAudioProfile(meta.audio);
     }
   }
@@ -519,13 +1023,6 @@
     const scene = scenes[current];
     if (scene) scene.reset(width, height, dpr);
   }, { passive: true });
-
-  if (weatherBtn) {
-    weatherBtn.addEventListener('click', () => {
-      const next = getNextWeather(current);
-      setWeather(next);
-    }, { passive: true });
-  }
 
   function createNoiseBuffer(ctx) {
     const sr = ctx.sampleRate;
@@ -640,12 +1137,12 @@
     if (oscBass && profile.bassType) oscBass.type = profile.bassType;
   }
 
-  async function startMusic() {
+  async function startSynthSoundscape(immediate = false) {
     if (!audioCtx || audioCtx.state === 'closed') {
       audioCtx = null;
       buildAudio();
     }
-    if (!audioCtx) return;
+    if (!audioCtx) return false;
     if (audioCtx.state === 'suspended') {
       await audioCtx.resume();
     }
@@ -653,20 +1150,27 @@
     masterGain?.gain.cancelScheduledValues(t);
     masterGain?.gain.setValueAtTime(masterGain.gain.value, t);
     masterGain?.gain.linearRampToValueAtTime(0.2, t + 0.8);
-    musicOn = true;
-    body.classList.add('music-active');
-    updateMusicButton();
     if (pendingProfile) {
-      morphAudio(pendingProfile, true);
+      morphAudio(pendingProfile, immediate);
     }
+    return true;
   }
 
-  function stopMusic() {
+  function stopSynthSoundscape() {
     if (!audioCtx || !masterGain) {
-      musicOn = false;
-      body.classList.remove('music-active');
-      updateMusicButton();
-      pendingProfile = weatherModes[current].audio;
+      audioCtx = null;
+      masterGain = null;
+      noiseSource = null;
+      noiseGain = null;
+      noiseHighpass = null;
+      noiseLowpass = null;
+      osc1 = null;
+      osc2 = null;
+      oscBass = null;
+      oscGain = null;
+      bassGain = null;
+      lfo = null;
+      lfoGain = null;
       return;
     }
     const t = audioCtx.currentTime;
@@ -693,6 +1197,51 @@
       lfo = null;
       lfoGain = null;
     }, 700);
+  }
+
+  async function startFileTrack(track) {
+    if (!audioEl || track.type !== 'file' || !track.src) return false;
+    if (audioEl.src !== track.src) {
+      audioEl.src = track.src;
+    }
+    try {
+      await audioEl.play();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function stopFileTrack() {
+    if (!audioEl) return;
+    audioEl.pause();
+    audioEl.currentTime = 0;
+  }
+
+  async function startMusic(options = {}) {
+    const track = getCurrentTrack();
+    if (!track) return false;
+    let started = false;
+    if (track.type === 'synth') {
+      started = await startSynthSoundscape(options.immediate);
+    } else if (track.type === 'file') {
+      started = await startFileTrack(track);
+    }
+    if (started) {
+      musicOn = true;
+      body.classList.add('music-active');
+      updateMusicButton();
+    }
+    return started;
+  }
+
+  function stopMusic() {
+    const track = getCurrentTrack();
+    if (track?.type === 'synth') {
+      stopSynthSoundscape();
+    } else {
+      stopFileTrack();
+    }
     musicOn = false;
     body.classList.remove('music-active');
     pendingProfile = weatherModes[current].audio;
@@ -701,10 +1250,12 @@
 
   function updateMusicButton() {
     if (!musicBtn) return;
+    const track = getCurrentTrack();
     musicBtn.textContent = musicOn ? '🔊' : '♫';
-    musicBtn.dataset.label = musicOn ? 'AUDIO ON' : 'AUDIO OFF';
-    musicBtn.setAttribute('aria-label', musicOn ? '關閉聲景' : '啟動聲景');
-    musicBtn.setAttribute('title', musicOn ? '關閉聲景' : '啟動聲景');
+    const labelBase = track ? track.name : musicOn ? 'AUDIO ON' : 'AUDIO OFF';
+    musicBtn.dataset.label = musicOn ? `${labelBase} 播放中` : labelBase;
+    musicBtn.setAttribute('aria-label', musicOn ? `關閉聲景：${track?.name ?? ''}` : `啟動聲景：${track?.name ?? labelBase}`);
+    musicBtn.setAttribute('title', musicOn ? `關閉聲景：${track?.name ?? ''}` : `啟動聲景：${track?.name ?? labelBase}`);
     musicBtn.setAttribute('aria-pressed', musicOn ? 'true' : 'false');
   }
 
@@ -718,7 +1269,13 @@
   window.addEventListener('pagehide', () => { if (musicOn) stopMusic(); });
 
   resizeCanvas();
-  setWeather('sun');
+  buildWeatherOptions();
+  buildMusicOptions();
+  highlightWeather(current);
+  highlightTrack(currentTrackId);
+  updateDockTrackDisplay();
+  updateMusicButton();
+  setWeather(current);
 
   let last = performance.now();
   function frame(now) {
