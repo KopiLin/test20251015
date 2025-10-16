@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>下雨天動畫 · Rainy Day</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="rain.js" defer></script>
+  </head>
+  <body>
+    <canvas id="rain-canvas" aria-label="Rain animation"></canvas>
+
+    <button id="music-toggle" class="music-toggle" type="button"
+            aria-pressed="false" aria-label="背景音樂" title="背景音樂">
+      ♪
+    </button>
+
+    <div class="clock" id="clock" aria-live="polite" aria-atomic="true">--:--</div>
+    <div class="overlay">
+      <div class="label">Rainy Day</div>
+    </div>
+  </body>
+</html>
