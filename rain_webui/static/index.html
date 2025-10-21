@@ -61,6 +61,25 @@
           <div class="dock-music" id="music-options"></div>
           <p class="dock-credit" id="music-credit" aria-live="polite"></p>
         </div>
+        <div class="dock-section" aria-label="互動特效">
+          <span class="dock-heading">EXTRAS</span>
+          <div class="dock-extras">
+            <button id="auto-cycle-toggle" class="dock-option dock-option--toggle" type="button" aria-pressed="false">
+              <span class="option-icon">🌀</span>
+              <span>Auto Cycle</span>
+            </button>
+            <button id="focus-mode-toggle" class="dock-option dock-option--toggle" type="button" aria-pressed="false">
+              <span class="option-icon">🎬</span>
+              <span>Cinematic Mode</span>
+            </button>
+          </div>
+          <div class="dock-slider">
+            <label for="cycle-speed" class="dock-slider-label">Cycle Speed</label>
+            <input id="cycle-speed" type="range" min="20" max="90" step="5" value="45" />
+            <span class="dock-slider-value" id="cycle-speed-value">45s</span>
+          </div>
+          <p class="dock-credit" id="extras-status" aria-live="polite"></p>
+        </div>
       </div>
     </div>
 
