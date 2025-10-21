@@ -6,6 +6,13 @@
   --hud-border: rgba(130, 190, 255, 0.25);
   --hud-text: #d7e1ff;
   --hud-text-rgb: 215, 225, 255;
+  --hud-surface-strong: rgba(20, 28, 46, 0.55);
+  --hud-surface-hover: rgba(36, 50, 76, 0.75);
+  --hud-strong-border: rgba(170, 190, 255, 0.28);
+  --hud-panel-surface: rgba(16, 24, 40, 0.82);
+  --hud-panel-border: rgba(120, 160, 220, 0.28);
+  --hud-panel-text: var(--hud-text);
+  --hud-panel-muted: rgba(var(--hud-text-rgb), 0.72);
 }
 
 * { box-sizing: border-box; }
@@ -42,6 +49,13 @@ body.theme-sun {
   --hud-border: rgba(255, 223, 164, 0.55);
   --hud-text: #293046;
   --hud-text-rgb: 41, 48, 70;
+  --hud-surface-strong: rgba(255, 255, 255, 0.75);
+  --hud-surface-hover: rgba(255, 255, 255, 0.88);
+  --hud-strong-border: rgba(72, 104, 150, 0.35);
+  --hud-panel-surface: rgba(255, 255, 255, 0.92);
+  --hud-panel-border: rgba(64, 94, 140, 0.28);
+  --hud-panel-text: #2f3a4d;
+  --hud-panel-muted: rgba(47, 58, 77, 0.62);
   background: radial-gradient(circle at 10% 0%, rgba(255, 227, 142, 0.42), transparent 55%),
     radial-gradient(circle at 80% 15%, rgba(255, 140, 178, 0.24), transparent 60%),
     linear-gradient(180deg, #23355a 0%, #2a437a 45%, #f6cd82 100%);
@@ -94,6 +108,13 @@ body.theme-snow {
   --hud-border: rgba(184, 214, 255, 0.4);
   --hud-text: #2c3f66;
   --hud-text-rgb: 44, 63, 102;
+  --hud-surface-strong: rgba(255, 255, 255, 0.78);
+  --hud-surface-hover: rgba(255, 255, 255, 0.88);
+  --hud-strong-border: rgba(116, 148, 200, 0.35);
+  --hud-panel-surface: rgba(255, 255, 255, 0.88);
+  --hud-panel-border: rgba(116, 148, 200, 0.35);
+  --hud-panel-text: #2c3f66;
+  --hud-panel-muted: rgba(44, 63, 102, 0.62);
   background: radial-gradient(circle at 10% 5%, rgba(224, 246, 255, 0.55), transparent 55%),
     radial-gradient(circle at 75% 20%, rgba(160, 200, 255, 0.35), transparent 60%),
     linear-gradient(185deg, #14203a 0%, #1b3154 45%, #3f5d80 100%);
@@ -107,6 +128,12 @@ body.theme-aurora {
   --hud-border: rgba(120, 230, 210, 0.35);
   --hud-text: #d6fffb;
   --hud-text-rgb: 214, 255, 251;
+  --hud-surface-strong: rgba(12, 30, 48, 0.65);
+  --hud-surface-hover: rgba(16, 36, 58, 0.75);
+  --hud-strong-border: rgba(120, 230, 210, 0.45);
+  --hud-panel-surface: rgba(10, 24, 32, 0.78);
+  --hud-panel-border: rgba(120, 230, 210, 0.35);
+  --hud-panel-muted: rgba(214, 255, 251, 0.7);
   background: radial-gradient(circle at 25% 15%, rgba(120, 255, 232, 0.4), transparent 55%),
     radial-gradient(circle at 70% 5%, rgba(184, 140, 255, 0.35), transparent 60%),
     linear-gradient(200deg, #050a14 0%, #071730 45%, #0e203a 100%);
@@ -163,13 +190,14 @@ body.theme-aurora {
 .label {
   padding: 6px 12px;
   border-radius: 999px;
-  background: rgba(20, 28, 46, 0.5);
-  border: 1px solid rgba(170, 190, 255, 0.16);
+  background: var(--hud-surface);
+  border: 1px solid var(--hud-border);
   backdrop-filter: blur(3px);
-  color: #cfd8ff;
+  color: var(--hud-text);
   font-weight: 600;
   font-size: 14px;
   letter-spacing: 0.3px;
+  transition: opacity 0.35s ease;
 }
 
 body.theme-sun .label {
@@ -190,34 +218,21 @@ body.theme-storm .label {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: #e8eeff;
+  color: var(--hud-text);
   font-weight: 700;
   letter-spacing: 1px;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.35), 0 0 30px rgba(120,160,255,0.25);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35), 0 0 30px rgba(var(--hud-text-rgb), 0.25);
   line-height: 1;
   pointer-events: none;
   user-select: none;
   padding: 8px 18px;
   border-radius: 14px;
-  background: rgba(10, 15, 29, 0.15);
-  border: 1px solid rgba(170, 190, 255, 0.18);
+  background: var(--hud-surface-strong);
+  border: 1px solid var(--hud-strong-border);
   backdrop-filter: blur(4px);
   font-size: clamp(32px, 9vw, 112px);
   z-index: 4;
-}
-
-body.theme-sun .clock {
-  color: #2f3a4d;
-  text-shadow: 0 2px 10px rgba(255, 255, 255, 0.55), 0 0 30px rgba(255, 255, 255, 0.35);
-  background: rgba(255, 255, 255, 0.4);
-  border-color: rgba(72, 104, 150, 0.25);
-}
-
-body.theme-storm .clock {
-  color: #d7e2ff;
-  text-shadow: 0 0 22px rgba(135, 120, 255, 0.55);
-  background: rgba(8, 10, 28, 0.35);
-  border-color: rgba(170, 150, 255, 0.3);
+  transition: opacity 0.35s ease;
 }
 
 .music-toggle {
@@ -227,21 +242,21 @@ body.theme-storm .clock {
   z-index: 6;
   padding: 10px 14px;
   border-radius: 12px;
-  border: 1px solid var(--hud-border);
-  background: rgba(20, 28, 46, 0.55);
+  border: 1px solid var(--hud-strong-border);
+  background: var(--hud-surface-strong);
   color: var(--hud-text);
   font-size: 18px;
   line-height: 1;
   cursor: pointer;
   backdrop-filter: blur(4px);
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35), 0 0 20px rgba(111, 214, 255, 0.18);
-  transition: background 0.35s ease, color 0.35s ease, box-shadow 0.45s ease, border 0.4s ease;
+  transition: background 0.35s ease, color 0.35s ease, box-shadow 0.45s ease, border 0.4s ease, opacity 0.35s ease;
   text-transform: uppercase;
   letter-spacing: 1.6px;
 }
 
 .music-toggle:hover {
-  background: rgba(26, 36, 60, 0.75);
+  background: var(--hud-surface-hover);
   box-shadow: 0 4px 26px rgba(0, 0, 0, 0.4), 0 0 26px var(--glow-color);
 }
 
@@ -251,32 +266,9 @@ body.theme-storm .clock {
 }
 
 .music-toggle[aria-pressed="true"] {
-  background: rgba(40, 56, 90, 0.7);
-  border-color: rgba(170, 190, 255, 0.45);
-  box-shadow: 0 6px 28px rgba(0,0,0,0.45), 0 0 32px var(--glow-color);
-}
-
-body.theme-sun .music-toggle {
-  background: rgba(255, 255, 255, 0.7);
-  border-color: rgba(48, 68, 105, 0.35);
-  color: #36506e;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
-}
-
-body.theme-sun .music-toggle:hover {
-  background: rgba(255, 255, 255, 0.85);
-}
-
-body.theme-sun .music-toggle[aria-pressed="true"] {
-  background: rgba(241, 246, 255, 0.85);
-  border-color: rgba(72, 104, 150, 0.45);
-}
-
-body.theme-storm .music-toggle {
-  background: rgba(24, 20, 48, 0.65);
-  border-color: rgba(170, 150, 255, 0.4);
-  color: #d4ddff;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45), 0 0 24px rgba(144, 125, 255, 0.45);
+  background: var(--hud-surface-hover);
+  border-color: rgba(var(--hud-text-rgb), 0.45);
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.45), 0 0 32px var(--glow-color);
 }
 
 .music-toggle::after {
@@ -297,6 +289,7 @@ body.theme-storm .music-toggle {
   gap: 10px;
   align-items: start;
   justify-items: end;
+  transition: opacity 0.35s ease;
 }
 
 .dock-toggle {
@@ -305,9 +298,9 @@ body.theme-storm .music-toggle {
   gap: 12px;
   padding: 10px 16px;
   border-radius: 16px;
-  border: 1px solid rgba(72, 104, 150, 0.35);
-  background: rgba(240, 248, 255, 0.78);
-  color: #2f3a4d;
+  border: 1px solid var(--hud-panel-border);
+  background: var(--hud-panel-surface);
+  color: var(--hud-panel-text, var(--hud-text));
   font-size: 15px;
   letter-spacing: 1.4px;
   cursor: pointer;
@@ -319,7 +312,7 @@ body.theme-storm .music-toggle {
 
 .dock-toggle:hover,
 .control-dock.open .dock-toggle {
-  background: rgba(255, 255, 255, 0.88);
+  background: var(--hud-surface-hover);
   box-shadow: 0 10px 32px rgba(0, 0, 0, 0.22), 0 0 22px var(--glow-color);
 }
 
@@ -365,11 +358,11 @@ body.theme-storm .music-toggle {
   min-width: clamp(240px, 32vw, 320px);
   padding: 18px 20px;
   border-radius: 18px;
-  border: 1px solid rgba(120, 160, 220, 0.28);
-  background: rgba(16, 24, 40, 0.8);
+  border: 1px solid var(--hud-panel-border);
+  background: var(--hud-panel-surface);
   box-shadow: 0 18px 44px rgba(0, 0, 0, 0.38), 0 0 32px var(--glow-color);
   backdrop-filter: blur(12px);
-  color: #e0e9ff;
+  color: var(--hud-panel-text, var(--hud-text));
   opacity: 0;
   pointer-events: none;
   transform: translateY(-8px);
@@ -387,14 +380,14 @@ body.theme-storm .music-toggle {
 .dock-section + .dock-section {
   margin-top: 18px;
   padding-top: 18px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid rgba(var(--hud-text-rgb), 0.12);
 }
 
 .dock-heading {
   display: block;
   font-size: 11px;
   letter-spacing: 2px;
-  opacity: 0.75;
+  color: var(--hud-panel-muted);
   margin-bottom: 12px;
 }
 
@@ -410,9 +403,9 @@ body.theme-storm .music-toggle {
   gap: 8px;
   padding: 10px 12px;
   border-radius: 14px;
-  border: 1px solid rgba(170, 190, 255, 0.22);
-  background: rgba(20, 30, 48, 0.55);
-  color: inherit;
+  border: 1px solid var(--hud-strong-border);
+  background: var(--hud-surface-strong);
+  color: var(--hud-panel-text, var(--hud-text));
   font-size: 12px;
   letter-spacing: 1.2px;
   cursor: pointer;
@@ -425,13 +418,14 @@ body.theme-storm .music-toggle {
 
 .dock-option:hover,
 .dock-option:focus-visible {
-  border-color: rgba(200, 220, 255, 0.45);
-  background: rgba(36, 50, 76, 0.75);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 18px rgba(120, 200, 255, 0.35);
+  border-color: rgba(var(--hud-text-rgb), 0.45);
+  background: var(--hud-surface-hover);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 18px var(--glow-color);
 }
 
 .dock-option.is-active {
   border-color: var(--accent-color);
+  background: var(--hud-surface-hover);
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35), 0 0 22px var(--glow-color);
 }
 
@@ -449,34 +443,51 @@ body.theme-storm .music-toggle {
   margin: 10px 0 0;
   font-size: 11px;
   line-height: 1.5;
-  color: rgba(224, 233, 255, 0.7);
+  color: var(--hud-panel-muted);
 }
 
-body.theme-sun .dock-panel {
-  background: rgba(255, 255, 255, 0.85);
-  color: #2f3a4d;
-  border-color: rgba(64, 94, 140, 0.28);
+.dock-extras {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 }
 
-body.theme-sun .dock-option {
-  background: rgba(255, 255, 255, 0.55);
-  border-color: rgba(72, 104, 150, 0.2);
+.dock-option--toggle {
+  justify-content: space-between;
 }
 
-body.theme-sun .dock-option:hover,
-body.theme-sun .dock-option:focus-visible {
-  background: rgba(255, 255, 255, 0.8);
-  border-color: rgba(72, 104, 150, 0.45);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), 0 0 18px rgba(255, 218, 120, 0.35);
+.dock-option--toggle .option-icon {
+  font-size: 16px;
 }
 
-body.theme-snow .dock-panel {
-  background: rgba(255, 255, 255, 0.82);
-  color: #2c3f66;
+.dock-slider {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--hud-surface);
+  border: 1px solid var(--hud-border);
+  color: var(--hud-panel-muted);
+  font-size: 11px;
+  letter-spacing: 1.4px;
 }
 
-body.theme-aurora .dock-panel {
-  background: rgba(10, 24, 32, 0.78);
+.dock-slider-label {
+  text-transform: uppercase;
+}
+
+.dock-slider input[type="range"] {
+  grid-column: 1 / -1;
+  width: 100%;
+  accent-color: var(--accent-color);
+}
+
+.dock-slider-value {
+  font-weight: 600;
+  justify-self: end;
+  color: var(--hud-panel-text, var(--hud-text));
 }
 
 .hud {
@@ -631,4 +642,26 @@ body.music-active .equalizer .bar {
   0% { opacity: 0.18; }
   50% { opacity: 0.32; }
   100% { opacity: 0.18; }
+}
+
+body.focus-mode .hud,
+body.focus-mode .overlay,
+body.focus-mode .clock {
+  opacity: 0;
+  pointer-events: none;
+}
+
+body.focus-mode .music-toggle {
+  opacity: 0.35;
+}
+
+body.focus-mode .control-dock {
+  opacity: 0.35;
+}
+
+body.focus-mode .control-dock:hover,
+body.focus-mode .control-dock:focus-within,
+body.focus-mode .music-toggle:focus-visible,
+body.focus-mode .music-toggle:hover {
+  opacity: 1;
 }

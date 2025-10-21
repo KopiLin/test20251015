@@ -23,15 +23,24 @@
   const musicOptionsEl = document.getElementById('music-options');
   const musicCreditEl = document.getElementById('music-credit');
   const audioEl = document.getElementById('bg-audio');
+  const extrasStatusEl = document.getElementById('extras-status');
+  const autoCycleToggle = document.getElementById('auto-cycle-toggle');
+  const focusModeToggle = document.getElementById('focus-mode-toggle');
+  const cycleSpeedInput = document.getElementById('cycle-speed');
+  const cycleSpeedValue = document.getElementById('cycle-speed-value');
 
   const weatherButtons = new Map();
   const musicButtons = new Map();
 
   if (audioEl) {
-    audioEl.crossOrigin = 'anonymous';
     audioEl.loop = true;
     audioEl.preload = 'auto';
     audioEl.volume = 0.6;
+    audioEl.addEventListener('error', () => {
+      if (musicCreditEl) {
+        musicCreditEl.textContent = '⚠️ 音檔載入失敗，請稍後再試。';
+      }
+    });
   }
 
   function rand(min, max) { return Math.random() * (max - min) + min; }
@@ -818,6 +827,10 @@
   let pendingProfile = weatherModes.sun.audio;
   let currentTrackId = musicTracks[0]?.id ?? 'synth-lab';
   let dockOpen = false;
+  let autoCycleActive = false;
+  let autoCycleHandle = null;
+  let cycleDelayMs = 45000;
+  let focusModeActive = false;
 
   function resizeCanvas() {
     dpr = Math.max(1, window.devicePixelRatio || 1);
@@ -869,6 +882,75 @@
       btn.classList.toggle('is-active', key === id);
     });
     updateDockTrackDisplay();
+  }
+
+  function updateExtrasStatus(message) {
+    if (extrasStatusEl) extrasStatusEl.textContent = message;
+  }
+
+  function clearAutoCycle() {
+    if (autoCycleHandle !== null) {
+      window.clearTimeout(autoCycleHandle);
+      autoCycleHandle = null;
+    }
+  }
+
+  function scheduleAutoCycle() {
+    if (!autoCycleActive) return;
+    clearAutoCycle();
+    autoCycleHandle = window.setTimeout(() => {
+      autoCycleHandle = null;
+      triggerAutoCycle();
+    }, cycleDelayMs);
+  }
+
+  function triggerAutoCycle() {
+    const currentIndex = weatherOrder.indexOf(current);
+    const nextIndex = (currentIndex + 1) % weatherOrder.length;
+    const nextWeather = weatherOrder[nextIndex];
+    setWeather(nextWeather);
+    const label = weatherModes[nextWeather]?.label ?? nextWeather;
+    updateExtrasStatus(`Auto cycle → ${label}`);
+  }
+
+  function setAutoCycleActive(active) {
+    autoCycleActive = active;
+    if (autoCycleToggle) {
+      autoCycleToggle.classList.toggle('is-active', active);
+      autoCycleToggle.setAttribute('aria-pressed', active ? 'true' : 'false');
+    }
+    if (active) {
+      updateExtrasStatus(`Auto cycle armed (${Math.round(cycleDelayMs / 1000)}s).`);
+      scheduleAutoCycle();
+    } else {
+      updateExtrasStatus('Auto cycle paused.');
+      clearAutoCycle();
+    }
+  }
+
+  function syncCycleSpeedFromInput(notify = false) {
+    if (!cycleSpeedInput) return;
+    const value = Number(cycleSpeedInput.value);
+    if (!Number.isFinite(value)) return;
+    const clamped = Math.max(5, value);
+    cycleDelayMs = clamped * 1000;
+    if (cycleSpeedValue) cycleSpeedValue.textContent = `${Math.round(clamped)}s`;
+    if (autoCycleActive) {
+      scheduleAutoCycle();
+      if (notify) updateExtrasStatus(`Auto cycle every ${Math.round(clamped)}s.`);
+    } else if (notify) {
+      updateExtrasStatus(`Cycle speed set to ${Math.round(clamped)}s.`);
+    }
+  }
+
+  function setFocusMode(active) {
+    focusModeActive = active;
+    body.classList.toggle('focus-mode', active);
+    if (focusModeToggle) {
+      focusModeToggle.classList.toggle('is-active', active);
+      focusModeToggle.setAttribute('aria-pressed', active ? 'true' : 'false');
+    }
+    updateExtrasStatus(active ? 'Cinematic mode on — HUD muted.' : 'Cinematic mode off.');
   }
 
   function buildWeatherOptions() {
@@ -939,6 +1021,25 @@
         dockToggle?.focus();
       }
     });
+  }
+
+  if (autoCycleToggle) {
+    autoCycleToggle.addEventListener('click', () => {
+      setAutoCycleActive(!autoCycleActive);
+    });
+  }
+
+  if (focusModeToggle) {
+    focusModeToggle.addEventListener('click', () => {
+      setFocusMode(!focusModeActive);
+    });
+  }
+
+  if (cycleSpeedInput) {
+    syncCycleSpeedFromInput();
+    cycleSpeedInput.addEventListener('input', () => syncCycleSpeedFromInput(true));
+  } else if (cycleSpeedValue) {
+    cycleSpeedValue.textContent = `${Math.round(cycleDelayMs / 1000)}s`;
   }
 
   async function selectTrack(id) {
@@ -1016,6 +1117,7 @@
     if (meta && getCurrentTrack()?.type === 'synth') {
       scheduleAudioProfile(meta.audio);
     }
+    if (autoCycleActive) scheduleAutoCycle();
   }
 
   window.addEventListener('resize', () => {
@@ -1266,15 +1368,36 @@
     }, { passive: true });
   }
 
+  document.addEventListener('keydown', event => {
+    if (event.defaultPrevented) return;
+    const target = event.target;
+    if (target instanceof HTMLElement) {
+      const tag = target.tagName;
+      if (target.isContentEditable || tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || tag === 'BUTTON') {
+        return;
+      }
+    }
+    const key = event.key?.toLowerCase();
+    if (key === 'f') {
+      event.preventDefault();
+      setFocusMode(!focusModeActive);
+    } else if (key === 'a') {
+      event.preventDefault();
+      setAutoCycleActive(!autoCycleActive);
+    }
+  });
+
   window.addEventListener('pagehide', () => { if (musicOn) stopMusic(); });
 
   resizeCanvas();
   buildWeatherOptions();
   buildMusicOptions();
+  if (cycleSpeedInput) syncCycleSpeedFromInput();
   highlightWeather(current);
   highlightTrack(currentTrackId);
   updateDockTrackDisplay();
   updateMusicButton();
+  if (extrasStatusEl) updateExtrasStatus('提示：按 A 啟動自動循環，按 F 切換影院模式。');
   setWeather(current);
 
   let last = performance.now();
